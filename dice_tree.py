@@ -62,7 +62,7 @@ parser.add_argument('-i', '--input', required=True, help='path to all-v-all blas
 parser.add_argument('-out_csv', '--out_csv', default='dice_distances.tsv',
                     help='tab-separated file of pairwise distances between genomes (default: dice_distances.tsv)')
 parser.add_argument('-out_tree', '--out_tree', default='tree.nwk',
-                    help='tree file in newick format (default: tree.nwk)')
+                    help='tree file in newick format (default: dice_tree.nwk)')
 parser.add_argument('-e', '--evalue', type=float, default=1e-5,
                     help='evalue threshold to use (default: 1e-5)')
 parser.add_argument('-p', '--pident', type=float, default=40,
