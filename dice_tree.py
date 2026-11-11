@@ -123,6 +123,7 @@ S = bs.unstack().reindex(index=names, columns=names).fillna(0.0).to_numpy()
 
 # ------------------------------------------------------- Dice distance
 # d(i,j) = 1 - 2 * max(S_ij, S_ji) / (S_ii + S_jj)
+# originally was using a dictionary and reverse dictionary but now can do it all at once using numpy 
 best = np.maximum(S, S.T)
 self_bs = np.diag(S)
 denom = self_bs[:, None] + self_bs[None, :]
