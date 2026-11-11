@@ -15,7 +15,7 @@ However, this is only based on the presence/absence of shared genes.
 The homology we use is represented by local alignment(blastp) and the similarity is calculated with a Dice coefficient (also known as the Sorensen-Dice Index) using a summation of the bitscores of all proteins.
 
 $$
-d(A,B) = 1 - \frac{2 \cdot \max\left(S_{AB},\, S_{BA}\right)}{S_{AA} + S_{BB}}
+d(A,B) = 1 - \frac{2 \cdot \max\left(S_{AB}\, S_{BA}\right)}{S_{AA} + S_{BB}}
 $$
 
 where $S_{AB}$ is the sum of bitscores of all hits from proteins of genome $A$
