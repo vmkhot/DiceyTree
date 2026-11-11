@@ -21,15 +21,48 @@ import pandas as pd
 from Bio import Phylo
 from Bio.Phylo.TreeConstruction import DistanceMatrix, DistanceTreeConstructor
 
+EPILOG = """\
+input format:
+  Tab-separated BLAST output (-outfmt 6), one hit per line:
+
+    qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore [qcov tcov]
+
+  Sequence IDs must look like <genome>_CDS_<number>, e.g. genome_A_icnght_CDS_0001
+  (genome = genome_A_icnght, protein = CDS_0001). Use --sep if your IDs use a
+  different separator. Columns 13 and 14 (query / target cover in %%) are optional
+  and only needed for -qc / -tc. For example, DIAMOND writes them with:
+
+    --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovhsp scovhsp
+
+  (NCBI blastp has qcovs for query cover but no target-cover field.)
+
+method:
+  1. keep hits passing the evalue, identity and (optional) cover thresholds
+  2. sum bitscores for every genome pair -> S[a,b]
+  3. Dice distance: d(a,b) = 1 - 2*max(S[a,b], S[b,a]) / (S[a,a] + S[b,b])
+     (pairs with no hits get distance 1)
+  4. neighbour-joining tree from the distance matrix
+
+output:
+  out_csv   tab-separated table with columns seq1, seq2, dice
+  out_tree  neighbour-joining tree in newick format
+
+examples:
+  %(prog)s -i allvall.blastp
+  %(prog)s -i allvall.blastp -out_csv dist.tsv -out_tree tree.nwk -e 1e-10 -p 50
+  %(prog)s -i allvall.blastp -qc 70 -tc 70
+"""
+
 parser = argparse.ArgumentParser(
-    description='Input blastp output for all-v-all genes between any genomes --> '
-                'output is a table of distances between genomes based on shared '
-                'genes and a neighbour-joining (distance-based) tree')
+    description='All-v-all blastp output -> Dice distances between genomes (from summed '
+                'bitscores of shared genes) -> neighbour-joining tree.',
+    epilog=EPILOG,
+    formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-i', '--input', required=True, help='path to all-v-all blastp file')
 parser.add_argument('-out_csv', '--out_csv', default='dice_distances.tsv',
-                    help='tab-separated file of pairwise distances between genomes')
+                    help='tab-separated file of pairwise distances between genomes (default: dice_distances.tsv)')
 parser.add_argument('-out_tree', '--out_tree', default='tree.nwk',
-                    help='tree file (in newick format)')
+                    help='tree file in newick format (default: tree.nwk)')
 parser.add_argument('-e', '--evalue', type=float, default=1e-5,
                     help='evalue threshold to use (default: 1e-5)')
 parser.add_argument('-p', '--pident', type=float, default=40,
@@ -40,6 +73,9 @@ parser.add_argument('-qc', '--qcover', type=float, default=None,
                     help='minimum query cover in %% (default: none; needs column 13 of the blast file)')
 parser.add_argument('--sep', default='_CDS_',
                     help="text separating genome name from protein number in the IDs (default: _CDS_)")
+if len(sys.argv) == 1:      # no arguments: show the full help instead of a short error
+    parser.print_help()
+    sys.exit(1)
 args = parser.parse_args()
 
 # ---------------------------------------------------------------- read input
